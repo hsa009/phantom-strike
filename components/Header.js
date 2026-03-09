@@ -1,79 +1,47 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase, backendUrl, fetchBotConfig } from '@/lib/supabase'
+import { backendUrl, fetchBotConfig } from '@/lib/supabase'
 import { Activity, Wifi, WifiOff, Loader2 } from 'lucide-react'
 
 export default function Header({ isLiveMode, setIsLiveMode }) {
   const [connected, setConnected] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     async function checkConnection() {
-      if (!supabase) {
-        setConnected(false)
-        return
-      }
-
       try {
-        const { data, error } = await supabase.from('bot_config').select('id').limit(1)
-        if (error) {
-          console.error('Supabase connection error:', error)
-          setConnected(false)
-        } else {
-          setConnected(true)
-        }
+        const res = await fetch(`${backendUrl}/health`)
+        setConnected(res.ok)
       } catch (e) {
-        console.error('Connection check failed:', e)
         setConnected(false)
       }
     }
 
     checkConnection()
-
-    const channel = supabase
-      .channel('header-status')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'bot_config' }, () => {
-        checkConnection()
-      })
-      .subscribe()
-
+    const interval = setInterval(checkConnection, 10000)
+    
     fetchBotConfig().then(config => {
       setIsLiveMode(!config.is_demo_mode)
     }).catch(() => {})
 
-    return () => {
-      supabase.removeChannel(channel)
-    }
+    return () => clearInterval(interval)
   }, [setIsLiveMode])
 
   const handleToggle = async () => {
     setLoading(true)
-    setError(null)
     try {
       const newMode = !isLiveMode
-      console.log('Toggling to:', newMode ? 'live' : 'demo')
-      
       const res = await fetch(`${backendUrl}/toggle-mode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: newMode ? 'live' : 'demo' })
       })
-
-      console.log('Response status:', res.status)
-      
-      const data = await res.json()
-      console.log('Response data:', data)
-
       if (res.ok) {
         setIsLiveMode(newMode)
-      } else {
-        setError(data.error || 'Failed to toggle')
       }
     } catch (e) {
       console.error('Toggle error:', e)
-      setError('Cannot reach backend')
     }
     setLoading(false)
   }
@@ -85,7 +53,7 @@ export default function Header({ isLiveMode, setIsLiveMode }) {
         <h1 className="text-xl font-bold tracking-tight text-gray-50">PHANTOM-STRIKE</h1>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-6">
         <button
           onClick={handleToggle}
           disabled={loading}
@@ -103,10 +71,6 @@ export default function Header({ isLiveMode, setIsLiveMode }) {
             </span>
           )}
         </button>
-
-        {error && (
-          <span className="text-xs text-red-400">{error}</span>
-        )}
 
         <div className="flex items-center gap-2">
           {connected ? (

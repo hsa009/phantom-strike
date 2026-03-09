@@ -5,18 +5,10 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   Scatter, ComposedChart 
 } from 'recharts'
-import { supabase, fetchPriceHistory, fetchTradeLogs } from '@/lib/supabase'
-
-const MAX_PRICE_POINTS = 100
 
 export default function PriceChart({ prices, setPrices, trades }) {
-  const [tradesWithPrice, setTradesWithPrice] = useState([])
-
-  useEffect(() => {
-    fetchTradeLogs(50).then(setTradesWithPrice)
-  }, [])
-
   const formatTime = (dateStr) => {
+    if (!dateStr) return ''
     const date = new Date(dateStr)
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
@@ -27,7 +19,7 @@ export default function PriceChart({ prices, setPrices, trades }) {
     price: parseFloat(p.close)
   }))
 
-  const tradeMarkers = tradesWithPrice
+  const tradeMarkers = trades
     .filter(t => t.status === 'OPEN' && t.entry_price)
     .map(t => ({
       x: t.entry_price,
