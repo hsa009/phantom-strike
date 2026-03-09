@@ -1,18 +1,14 @@
-'use client'
-
-import { DataProvider } from '@/components/DataProvider'
 import './globals.css'
+
+export const metadata = {
+  title: 'Phantom-Strike',
+  description: 'AI-powered crypto trading dashboard',
+}
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <DataProvider>
-          <main className="min-h-screen bg-black">
-            {children}
-          </main>
-        </DataProvider>
-      </body>
+      <body>{children}</body>
     </html>
   )
 }
