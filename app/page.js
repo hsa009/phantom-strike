@@ -6,7 +6,7 @@ import Header from '@/components/Header'
 import PriceChart from '@/components/PriceChart'
 import TradeFeed from '@/components/TradeFeed'
 
-const POLL_INTERVAL = 5000
+const POLL_INTERVAL = 1000
 
 export default function Dashboard() {
   const [prices, setPrices] = useState([])
