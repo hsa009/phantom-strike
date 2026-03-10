@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { backendUrl, fetchBotConfig } from '@/lib/supabase'
+import { backendUrl, fetchBotConfig, supabase } from '@/lib/supabase'
 import { Activity, Wifi, WifiOff, Loader2 } from 'lucide-react'
 
 export default function Header({ isLiveMode, setIsLiveMode }) {
@@ -10,35 +10,57 @@ export default function Header({ isLiveMode, setIsLiveMode }) {
 
   useEffect(() => {
     async function checkConnection() {
+      if (!supabase) {
+        setConnected(false)
+        return
+      }
+
       try {
-        const res = await fetch(`${backendUrl}/health`)
-        setConnected(res.ok)
+        const { data, error } = await supabase.from('bot_config').select('id').limit(1)
+        setConnected(!error && data)
       } catch (e) {
         setConnected(false)
       }
     }
 
     checkConnection()
-    const interval = setInterval(checkConnection, 10000)
-    
+
+    const channel = supabase?.channel('header-status')
+    if (channel) {
+      channel.on('postgres_changes', { event: '*', schema: 'public', table: 'bot_config' }, () => {
+        checkConnection()
+      }).subscribe()
+    }
+
     fetchBotConfig().then(config => {
       setIsLiveMode(!config.is_demo_mode)
     }).catch(() => {})
 
-    return () => clearInterval(interval)
+    return () => {
+      if (channel) supabase.removeChannel(channel)
+    }
   }, [setIsLiveMode])
 
   const handleToggle = async () => {
     setLoading(true)
     try {
       const newMode = !isLiveMode
-      const res = await fetch(`${backendUrl}/toggle-mode`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode: newMode ? 'live' : 'demo' })
-      })
-      if (res.ok) {
-        setIsLiveMode(newMode)
+      
+      if (backendUrl) {
+        const res = await fetch(`${backendUrl}/toggle-mode`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: newMode ? 'live' : 'demo' })
+        })
+        if (res.ok) {
+          setIsLiveMode(newMode)
+        }
+      } else if (supabase) {
+        const { data } = await supabase.from('bot_config').select('id').limit(1).single()
+        if (data) {
+          await supabase.from('bot_config').update({ is_demo_mode: !newMode }).eq('id', data.id)
+          setIsLiveMode(newMode)
+        }
       }
     } catch (e) {
       console.error('Toggle error:', e)
