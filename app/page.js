@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { supabase, fetchPriceHistory, fetchTradeLogs, fetchBotConfig, fetchPortfolioStats } from '@/lib/supabase'
+import { fetchPriceHistory, fetchTradeLogs, fetchBotConfig, fetchPortfolioStats, toggleDemoMode, supabase } from '@/lib/supabase'
 import Header from '@/components/Header'
 import PriceChart from '@/components/PriceChart'
 import TradeFeed from '@/components/TradeFeed'
 
-const POLL_INTERVAL = 5000
+const POLL_INTERVAL = 3000
 const MAX_PRICE_POINTS = 100
 
 export default function Dashboard() {
@@ -16,58 +16,37 @@ export default function Dashboard() {
   const [isLiveMode, setIsLiveMode] = useState(false)
 
   const loadData = useCallback(async () => {
-    const [priceData, tradeData, portfolioData, configData] = await Promise.all([
-      fetchPriceHistory(MAX_PRICE_POINTS),
-      fetchTradeLogs(20),
-      fetchPortfolioStats(),
-      fetchBotConfig()
-    ])
-    
-    setPrices(priceData || [])
-    setTrades(tradeData || [])
-    setPortfolio(portfolioData || { totalTrades: 0, totalPnl: 0, winRate: 0 })
-    setIsLiveMode(!configData.is_demo_mode)
+    try {
+      const [priceData, tradeData, portfolioData, configData] = await Promise.all([
+        fetchPriceHistory(MAX_PRICE_POINTS),
+        fetchTradeLogs(20),
+        fetchPortfolioStats(),
+        fetchBotConfig()
+      ])
+      
+      setPrices(priceData || [])
+      setTrades(tradeData || [])
+      setPortfolio(portfolioData || { totalTrades: 0, totalPnl: 0, winRate: 0 })
+      setIsLiveMode(!configData?.is_demo_mode)
+    } catch (e) {
+      console.error('Load data error:', e)
+    }
   }, [])
 
   useEffect(() => {
     loadData()
-
-    if (!supabase) return
-
-    const priceChannel = supabase
-      .channel('price-history')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'price_history' }, (payload) => {
-        setPrices(prev => {
-          const newPrices = [...prev, payload.new]
-          if (newPrices.length > MAX_PRICE_POINTS) {
-            return newPrices.slice(-MAX_PRICE_POINTS)
-          }
-          return newPrices
-        })
-      })
-      .subscribe()
-
-    const tradeChannel = supabase
-      .channel('trade-logs')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'trade_logs' }, (payload) => {
-        if (payload.eventType === 'INSERT') {
-          setTrades(prev => [payload.new, ...prev].slice(0, 20))
-        } else if (payload.eventType === 'UPDATE') {
-          setTrades(prev => prev.map(t => t.id === payload.new.id ? payload.new : t))
-        }
-        loadData()
-      })
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(priceChannel)
-      supabase.removeChannel(tradeChannel)
-    }
+    const interval = setInterval(loadData, POLL_INTERVAL)
+    return () => clearInterval(interval)
   }, [loadData])
+
+  const handleToggle = async (newMode) => {
+    await toggleDemoMode(!newMode)
+    setIsLiveMode(newMode)
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50">
-      <Header isLiveMode={isLiveMode} setIsLiveMode={setIsLiveMode} />
+      <Header isLiveMode={isLiveMode} onToggle={handleToggle} />
       
       <main className="p-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
