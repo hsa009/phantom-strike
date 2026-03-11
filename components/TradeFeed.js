@@ -107,7 +107,7 @@ export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
         {trades.length === 0 ? (
           <p className="text-gray-500 text-sm text-center py-4">No trades yet</p>
         ) : (
-          trades.map((trade) => (
+          trades.filter(t => t.id !== openTrade?.id).map((trade) => (
             <div 
               key={trade.id} 
               className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-800"
