@@ -6,11 +6,9 @@ export default function PriceChart({ prices, currentPrice: propPrice }) {
   const [priceData, setPriceData] = useState([]);
   const [currentPrice, setCurrentPrice] = useState(propPrice || "0.00");
   const [loading, setLoading] = useState(true);
+  const [Chart, setChart] = useState(null);
 
-  // Use prices from props if available
   useEffect(() => {
-    console.log('[PriceChart] prices from props:', prices?.length);
-    
     if (prices && prices.length > 0) {
       const formatted = prices.map((p) => ({
         time: new Date(p.created_at).toLocaleTimeString([], { 
@@ -21,21 +19,22 @@ export default function PriceChart({ prices, currentPrice: propPrice }) {
       }));
       setPriceData(formatted);
       setCurrentPrice(parseFloat(prices[prices.length - 1].close).toFixed(2));
-      setLoading(false);
     } else if (propPrice) {
       setCurrentPrice(propPrice);
-      setLoading(false);
-    } else {
-      setLoading(false);
     }
+    setLoading(false);
   }, [prices, propPrice]);
 
-  console.log('[PriceChart] Rendering with', priceData.length, 'points, price:', currentPrice);
+  useEffect(() => {
+    import('recharts').then((mod) => {
+      setChart(() => mod);
+    });
+  }, []);
 
-  if (loading) {
+  if (loading || !Chart) {
     return (
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <div className="text-4xl text-white">Loading...</div>
+        <div className="text-4xl text-white">${currentPrice}</div>
       </div>
     );
   }
@@ -48,23 +47,6 @@ export default function PriceChart({ prices, currentPrice: propPrice }) {
           <span className="ml-2 text-gray-500">SOL-PERP</span>
         </div>
         <div className="text-gray-500">No chart data</div>
-      </div>
-    );
-  }
-
-  // Dynamic import for recharts to avoid SSR issues
-  const [Chart, setChart] = useState(null);
-  
-  useEffect(() => {
-    import('recharts').then((mod) => {
-      setChart(() => mod);
-    });
-  }, []);
-
-  if (!Chart) {
-    return (
-      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <div className="text-4xl text-white">${currentPrice}</div>
       </div>
     );
   }
