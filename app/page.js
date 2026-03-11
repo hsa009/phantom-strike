@@ -94,6 +94,18 @@ export default function Dashboard() {
             <p className={`text-2xl font-bold ${totalPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
               ${totalPnl.toFixed(2)}
             </p>
+            {(() => {
+              const openTrade = trades.find(t => t.status === 'OPEN' || t.status === 'open')
+              if (openTrade && currentPrice) {
+                const pnlPercent = ((currentPrice - openTrade.entry_price) / openTrade.entry_price) * 100 * (openTrade.direction === 'LONG' ? 1 : -1)
+                return (
+                  <p className={`text-xs mt-1 ${pnlPercent >= 1.25 ? 'text-green-400' : pnlPercent <= -5 ? 'text-red-400' : 'text-gray-400'}`}>
+                    {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}% (TP: +1.25% | SL: -5%)
+                  </p>
+                )
+              }
+              return null
+            })()}
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
             <p className="text-xs text-gray-500 uppercase">Win Rate</p>

@@ -82,11 +82,17 @@ export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
               <p className="text-xs text-gray-500">uPnL</p>
               {(() => {
                 const pnl = calculateFloatingPnL(openTrade.entry_price, currentPrice, openTrade.direction);
+                const pnlPercent = ((currentPrice - openTrade.entry_price) / openTrade.entry_price) * 100 * (openTrade.direction === 'LONG' ? 1 : -1);
                 const isPositive = pnl >= 0;
                 return (
-                  <p className={`text-lg font-bold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-                    {formatPnL(pnl)}
-                  </p>
+                  <div>
+                    <p className={`text-lg font-bold ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                      {formatPnL(pnl)}
+                    </p>
+                    <p className={`text-xs ${pnlPercent >= 1.25 ? 'text-green-400' : pnlPercent <= -5 ? 'text-red-400' : 'text-gray-400'}`}>
+                      {pnlPercent >= 0 ? '+' : ''}{pnlPercent.toFixed(2)}%
+                    </p>
+                  </div>
                 );
               })()}
             </div>
