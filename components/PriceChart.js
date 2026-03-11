@@ -11,74 +11,95 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+console.log('[PriceChart] Component loading...');
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 console.log('[PriceChart] URL:', supabaseUrl);
-console.log('[PriceChart] Key set:', !!supabaseKey);
+console.log('[PriceChart] Key:', supabaseKey ? 'set' : 'missing');
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export default function PriceChart() {
   const [priceData, setPriceData] = useState([]);
   const [currentPrice, setCurrentPrice] = useState("0.00");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  console.log('[PriceChart] Render, supabase:', !!supabase);
 
   useEffect(() => {
-    const fetchPrices = async () => {
-      console.log('[PriceChart] Fetching prices...');
+    console.log('[PriceChart] useEffect running');
+    
+    async function fetchPrices() {
+      console.log('[PriceChart] fetchPrices called');
       
-      const { data, error } = await supabase
-        .from('price_history')
-        .select('close, created_at')
-        .order('created_at', { ascending: true })
-        .limit(50);
-
-      console.log('[PriceChart] Data:', data?.length, 'Error:', error);
-
-      if (error) {
-        console.error('[PriceChart] Error:', error);
+      if (!supabase) {
+        console.log('[PriceChart] No supabase client');
+        setError('No supabase client');
         setLoading(false);
         return;
       }
 
-      if (data && data.length > 0) {
-        const latestPrice = data[data.length - 1].close;
-        console.log('[PriceChart] Latest price:', latestPrice);
-        setCurrentPrice(parseFloat(latestPrice).toFixed(2));
-        
-        const formattedData = data.map((row) => ({
-          time: new Date(row.created_at).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit'
-          }),
-          price: parseFloat(row.close)
-        }));
+      try {
+        console.log('[PriceChart] Querying database...');
+        const { data, error: fetchError } = await supabase
+          .from('price_history')
+          .select('close, created_at')
+          .order('created_at', { ascending: true })
+          .limit(50);
 
-        console.log('[PriceChart] Formatted data:', formattedData.length);
-        setPriceData(formattedData);
+        console.log('[PriceChart] Query result:', data?.length, fetchError);
+
+        if (fetchError) {
+          console.error('[PriceChart] Fetch error:', fetchError);
+          setError(fetchError.message);
+          setLoading(false);
+          return;
+        }
+
+        if (data && data.length > 0) {
+          const latestPrice = data[data.length - 1].close;
+          setCurrentPrice(parseFloat(latestPrice).toFixed(2));
+          
+          const formatted = data.map((row) => ({
+            time: new Date(row.created_at).toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit'
+            }),
+            price: parseFloat(row.close)
+          }));
+
+          setPriceData(formatted);
+        }
+      } catch (err) {
+        console.error('[PriceChart] Catch error:', err);
+        setError(err.message);
       }
+      
       setLoading(false);
-    };
+    }
 
     fetchPrices();
+    
     const interval = setInterval(fetchPrices, 60000);
     return () => clearInterval(interval);
   }, []);
 
-  if (loading) {
+  if (error) {
     return (
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
-        <div className="text-4xl text-white">Loading...</div>
+        <div className="text-4xl text-red-500">Error: {error}</div>
       </div>
     );
   }
 
-  if (priceData.length === 0) {
+  if (loading || priceData.length === 0) {
     return (
       <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
         <div className="text-4xl text-white">${currentPrice}</div>
-        <div className="text-gray-500">No chart data available</div>
+        <div className="text-gray-500">Loading chart data... ({priceData.length} points)</div>
       </div>
     );
   }
