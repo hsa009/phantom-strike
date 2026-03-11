@@ -19,8 +19,10 @@ export default function PriceChart({ prices, setPrices, trades }) {
     price: parseFloat(p.close)
   }))
 
-  console.log('[PriceChart] prices:', prices.length)
-  console.log('[PriceChart] chartData:', chartData.slice(0, 2))
+  // Debug: show actual price values
+  if (chartData.length > 0) {
+    console.log('[PriceChart] Sample prices:', chartData.slice(0, 3).map(p => p.price))
+  }
 
   const tradeMarkers = trades
     .filter(t => t.status === 'OPEN' && t.entry_price)
@@ -32,6 +34,17 @@ export default function PriceChart({ prices, setPrices, trades }) {
     }))
 
   const latestPrice = prices.length > 0 ? parseFloat(prices[prices.length - 1].close) : 0
+  console.log('[PriceChart] latestPrice:', latestPrice)
+
+  if (chartData.length === 0) {
+    return (
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="text-center text-gray-500 py-20">
+          Waiting for price data...
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
