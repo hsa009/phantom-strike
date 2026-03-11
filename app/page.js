@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { fetchPriceHistory, fetchTradeLogs, fetchBotConfig, fetchPortfolioStats, toggleDemoMode, closeTrade } from '@/lib/supabase'
 import PriceChart from '@/components/PriceChart'
+import AIBrainStatus from '@/components/AIBrainStatus'
 
 const POLL_INTERVAL = 1000
 const MAX_PRICE_POINTS = 100
@@ -159,6 +160,8 @@ export default function DashboardV5() {
             )}
           </div>
         </div>
+
+        <AIBrainStatus />
 
         <div className={`${borderClass} ${cardBg} p-4`}>
           <div className={`border-b-4 ${borderColor} pb-2 mb-4`}>
