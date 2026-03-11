@@ -16,12 +16,15 @@ export default function DashboardV5() {
 
   const loadData = useCallback(async () => {
     try {
-      const [priceData, tradeData, portfolioData, configData] = await Promise.all([
-        fetchPriceHistory(MAX_PRICE_POINTS),
-        fetchTradeLogs(20),
-        fetchPortfolioStats(),
-        fetchBotConfig()
-      ])
+      console.log('[Dashboard] loadData starting...')
+      const priceData = await fetchPriceHistory(MAX_PRICE_POINTS)
+      console.log('[Dashboard] priceData:', priceData?.length)
+      const tradeData = await fetchTradeLogs(20)
+      console.log('[Dashboard] tradeData:', tradeData?.length)
+      const portfolioData = await fetchPortfolioStats()
+      console.log('[Dashboard] portfolioData:', portfolioData)
+      const configData = await fetchBotConfig()
+      console.log('[Dashboard] configData:', configData)
       setPrices(priceData || [])
       setTrades(tradeData || [])
       setPortfolio(portfolioData || { totalTrades: 0, totalPnl: 0, winRate: 0 })
