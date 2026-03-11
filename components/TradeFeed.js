@@ -92,7 +92,7 @@ export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
             </div>
           </div>
           
-          {openTrade.is_demo && currentPrice && (
+          {openTrade && currentPrice && (
             <button
               onClick={() => onCloseTrade && onCloseTrade(openTrade, currentPrice)}
               className="mt-3 w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition-colors"

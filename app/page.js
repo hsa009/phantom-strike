@@ -56,10 +56,10 @@ export default function Dashboard() {
 
   const calculateTotalPnL = () => {
     const closedPnL = trades
-      .filter(t => t.status === 'CLOSED_WIN' || t.status === 'CLOSED_LOSS')
+      .filter(t => t.status === 'CLOSED_WIN' || t.status === 'CLOSED_LOSS' || t.status === 'closed_win' || t.status === 'closed_loss')
       .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0)
     
-    const openTrade = trades.find(t => t.status === 'OPEN')
+    const openTrade = trades.find(t => t.status === 'OPEN' || t.status === 'open')
     let floatingPnL = 0
     if (openTrade && currentPrice) {
       const margin = 20
@@ -73,6 +73,7 @@ export default function Dashboard() {
       }
     }
     
+    console.log('[Dashboard] calculateTotalPnL:', { closedPnL, floatingPnL, openTrade: !!openTrade, currentPrice })
     return closedPnL + floatingPnL
   }
 
