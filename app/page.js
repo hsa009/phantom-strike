@@ -125,7 +125,7 @@ export default function DashboardV5() {
             </div>
             <PriceChart prices={prices} currentPrice={currentPrice} />
           </div>
-          <div className={`relative ${borderClass} ${cardBg} p-4 lg:ml-[-4px]`}>
+          <div className={`relative ${borderClass} ${cardBg} p-4 lg:ml-[-4px] group`}>
             <div className={`border-b-4 ${borderColor} pb-2 mb-4`}>
               <span className="font-bold uppercase">POSITION</span>
             </div>
@@ -159,9 +159,16 @@ export default function DashboardV5() {
               <div className="text-center py-12 font-bold uppercase text-gray-400">NO POSITION</div>
             )}
             
-            <div className="relative">
-              <AIBrainStatus isDark={isDark} />
-            </div>
+            {openTrade && (
+              <div className="absolute right-0 top-0 h-full group/slide">
+                <div className="absolute right-6 top-0 h-full w-72 opacity-0 translate-x-4 group-hover/slide:opacity-100 group-hover/slide:translate-x-0 transition-all duration-300 ease-out pointer-events-none">
+                  <AIBrainStatus isDark={isDark} />
+                </div>
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-16 flex items-center justify-center bg-yellow-400 border-l-4 border-t-4 border-b-4 border-black cursor-pointer z-50 group-hover/slide:opacity-0 transition-opacity duration-200">
+                  <span className="text-black font-black">‹</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
