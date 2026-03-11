@@ -104,10 +104,18 @@ export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
       )}
       
       <div className="space-y-2 max-h-64 overflow-y-auto">
-        {trades.length === 0 ? (
-          <p className="text-gray-500 text-sm text-center py-4">No trades yet</p>
-        ) : (
-          trades.filter(t => t.id !== openTrade?.id).map((trade) => (
+        {(() => {
+          const openTradeId = openTrade?.id
+          const filteredTrades = trades.filter(t => t.id !== openTradeId && t.status !== 'OPEN' && t.status !== 'open')
+          const uniqueTrades = filteredTrades.filter((t, index, self) => 
+            index === self.findIndex(tr => tr.id === t.id)
+          )
+          
+          if (uniqueTrades.length === 0) {
+            return <p className="text-gray-500 text-sm text-center py-4">No closed trades yet</p>
+          }
+          
+          return uniqueTrades.map((trade) => (
             <div 
               key={trade.id} 
               className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-800"
@@ -152,7 +160,7 @@ export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
               </div>
             </div>
           ))
-        )}
+        })()}
       </div>
     </div>
   )
