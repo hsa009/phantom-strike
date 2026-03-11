@@ -11,12 +11,18 @@ export default function AIBrainStatus() {
   const [reasoning, setReasoning] = useState('')
   const [lastDecision, setLastDecision] = useState('')
   const [confidence, setConfidence] = useState(0)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
+    console.log('[AIBrainStatus] Component mounted')
+    
     const checkStatus = async () => {
       try {
+        console.log('[AIBrainStatus] Checking status...')
+        
         // Fetch latest AI prediction for reasoning
         const aiData = await fetchLatestAIPrediction()
+        console.log('[AIBrainStatus] AI Data:', aiData)
         if (aiData) {
           setReasoning(aiData.reasoning || aiData.reasoning_details || 'No reasoning available')
           setLastDecision(aiData.decision || 'HOLD')
@@ -25,12 +31,15 @@ export default function AIBrainStatus() {
 
         // Fetch last closed trade for cooldown
         const lastTrade = await fetchLastClosedTrade()
+        console.log('[AIBrainStatus] Last Trade:', lastTrade)
         
         if (lastTrade && lastTrade.created_at) {
           const closedTime = new Date(lastTrade.created_at).getTime()
           const cooldownEnd = closedTime + COOLDOWN_MS
           const now = Date.now()
           const remaining = cooldownEnd - now
+          
+          console.log('[AIBrainStatus] Cooldown remaining:', remaining)
           
           if (remaining > 0) {
             setStatus('cooldown')
@@ -44,7 +53,8 @@ export default function AIBrainStatus() {
           setTimeLeft(0)
         }
       } catch (e) {
-        console.error('AIBrainStatus error:', e)
+        console.error('[AIBrainStatus] Error:', e)
+        setError(e.message)
         setStatus('ready')
       }
     }
@@ -93,6 +103,8 @@ export default function AIBrainStatus() {
       <div className="border-b-4 border-white pb-2 mb-4">
         <span className="font-bold uppercase">AI Brain Status</span>
       </div>
+      
+      {error && <div className="text-red-500 text-sm">Error: {error}</div>}
       
       <div className="space-y-3">
         <div className="flex items-center justify-between">
