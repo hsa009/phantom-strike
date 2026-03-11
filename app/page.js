@@ -159,7 +159,7 @@ export default function DashboardV5() {
               <div className="text-center py-12 font-bold uppercase text-gray-400">NO POSITION</div>
             )}
             
-            <AIBrainStatus isDark={isDark} slideOut={true} />
+            <AIBrainStatus isDark={isDark} />
           </div>
         </div>
 
