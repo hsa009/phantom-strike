@@ -39,7 +39,7 @@ export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
   }
 
   // Get the open trade
-  const openTrade = trades.find(t => t.status === 'OPEN');
+  const openTrade = trades.find(t => t.status === 'OPEN' || t.status === 'open');
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
