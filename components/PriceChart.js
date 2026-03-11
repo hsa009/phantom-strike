@@ -19,6 +19,9 @@ export default function PriceChart({ prices, setPrices, trades }) {
     price: parseFloat(p.close)
   }))
 
+  console.log('[PriceChart] prices:', prices.length)
+  console.log('[PriceChart] chartData:', chartData.slice(0, 2))
+
   const tradeMarkers = trades
     .filter(t => t.status === 'OPEN' && t.entry_price)
     .map(t => ({
