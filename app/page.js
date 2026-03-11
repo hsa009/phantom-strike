@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { fetchPriceHistory, fetchTradeLogs, fetchBotConfig, fetchPortfolioStats, toggleDemoMode } from '@/lib/supabase'
+import { fetchPriceHistory, fetchTradeLogs, fetchBotConfig, fetchPortfolioStats, toggleDemoMode, closeTrade } from '@/lib/supabase'
 import Header from '@/components/Header'
 import PriceChart from '@/components/PriceChart'
 import TradeFeed from '@/components/TradeFeed'
@@ -44,7 +44,39 @@ export default function Dashboard() {
     setIsLiveMode(newMode)
   }
 
+  const handleCloseTrade = async (trade, currentPrice) => {
+    console.log('[Dashboard] Closing trade:', trade.id, 'at price:', currentPrice)
+    const result = await closeTrade(trade.id, currentPrice, trade.direction, trade.entry_price)
+    if (!result.error) {
+      loadData()
+    }
+  }
+
   const currentPrice = prices.length > 0 ? prices[prices.length - 1].close : null;
+
+  const calculateTotalPnL = () => {
+    const closedPnL = trades
+      .filter(t => t.status === 'CLOSED_WIN' || t.status === 'CLOSED_LOSS')
+      .reduce((sum, t) => sum + (parseFloat(t.pnl) || 0), 0)
+    
+    const openTrade = trades.find(t => t.status === 'OPEN')
+    let floatingPnL = 0
+    if (openTrade && currentPrice) {
+      const margin = 20
+      const leverage = 4
+      const positionSizeUsd = margin * leverage
+      const solQuantity = positionSizeUsd / openTrade.entry_price
+      if (openTrade.direction === 'LONG') {
+        floatingPnL = solQuantity * (currentPrice - openTrade.entry_price)
+      } else if (openTrade.direction === 'SHORT') {
+        floatingPnL = solQuantity * (openTrade.entry_price - currentPrice)
+      }
+    }
+    
+    return closedPnL + floatingPnL
+  }
+
+  const totalPnl = calculateTotalPnL()
 
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50">
@@ -58,8 +90,8 @@ export default function Dashboard() {
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
             <p className="text-xs text-gray-500 uppercase">Total P&L</p>
-            <p className={`text-2xl font-bold ${portfolio.totalPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              ${portfolio.totalPnl.toFixed(2)}
+            <p className={`text-2xl font-bold ${totalPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+              ${totalPnl.toFixed(2)}
             </p>
           </div>
           <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
@@ -71,7 +103,7 @@ export default function Dashboard() {
         <PriceChart prices={prices} currentPrice={currentPrice} />
         
         <div className="mt-6">
-          <TradeFeed trades={trades} currentPrice={currentPrice} />
+          <TradeFeed trades={trades} currentPrice={currentPrice} onCloseTrade={handleCloseTrade} />
         </div>
       </main>
     </div>

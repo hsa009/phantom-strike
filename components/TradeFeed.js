@@ -19,7 +19,7 @@ function calculateFloatingPnL(entryPrice, currentPrice, action, margin = 20, lev
     return pnl;
 }
 
-export default function TradeFeed({ trades, currentPrice }) {
+export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
   const formatPrice = (price) => {
     if (!price) return '-'
     return `$${parseFloat(price).toFixed(2)}`
@@ -91,6 +91,15 @@ export default function TradeFeed({ trades, currentPrice }) {
               })()}
             </div>
           </div>
+          
+          {openTrade.is_demo && currentPrice && (
+            <button
+              onClick={() => onCloseTrade && onCloseTrade(openTrade, currentPrice)}
+              className="mt-3 w-full bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded transition-colors"
+            >
+              Close Position
+            </button>
+          )}
         </div>
       )}
       
