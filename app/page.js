@@ -6,7 +6,7 @@ import Header from '@/components/Header'
 import PriceChart from '@/components/PriceChart'
 import TradeFeed from '@/components/TradeFeed'
 
-const POLL_INTERVAL = 3000
+const POLL_INTERVAL = 1000 // 1 second - high-frequency sniper updates
 const MAX_PRICE_POINTS = 100
 
 export default function Dashboard() {
