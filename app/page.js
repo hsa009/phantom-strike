@@ -89,7 +89,7 @@ export default function DashboardV5() {
         <header className={`flex items-center justify-between mb-6 pb-4 border-b-4 ${borderColor}`}>
           <h1 className="text-4xl font-black uppercase tracking-tighter">Phantom Strike</h1>
           <div className="flex items-center gap-3">
-            <AIBrainStatus />
+            <AIBrainStatus isDark={isDark} />
             <button onClick={() => setIsDark(!isDark)} 
               className={`px-4 py-2 border-2 ${borderColor} font-bold uppercase text-sm hover:bg-yellow-400 hover:text-black transition-colors`}>
               {isDark ? '☀ LIGHT' : '☾ DARK'}
@@ -161,8 +161,6 @@ export default function DashboardV5() {
             )}
           </div>
         </div>
-
-        <AIBrainStatus />
 
         <div className={`${borderClass} ${cardBg} p-4`}>
           <div className={`border-b-4 ${borderColor} pb-2 mb-4`}>
