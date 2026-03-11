@@ -25,7 +25,7 @@ export default function AIBrainStatus({ isDark = true }) {
         if (aiData) {
           setReasoning(aiData.reasoning_summary || aiData.reasoning || aiData.reasoning_details || 'No reasoning available')
           setLastDecision(aiData.prediction_type || aiData.decision || 'HOLD')
-          setConfidence(aiData.confidence || 0)
+          setConfidence(aiData.confidence ?? aiData.confidence_score ?? aiData.confidence_percent ?? aiData.prediction_confidence ?? 0)
         }
 
         const lastTrade = await fetchLastClosedTrade()
