@@ -69,7 +69,7 @@ export default function Dashboard() {
         
         
         <div className="mt-6">
-          <TradeFeed trades={trades} />
+          <TradeFeed trades={trades} currentPrice={prices.length > 0 ? prices[prices.length - 1].close : null} />
         </div>
       </main>
     </div>
