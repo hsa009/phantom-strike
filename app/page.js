@@ -66,7 +66,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <PriceChart prices={prices} setPrices={setPrices} trades={trades} />
+        <PriceChart prices={prices} />
         
         <div className="mt-6">
           <TradeFeed trades={trades} />
