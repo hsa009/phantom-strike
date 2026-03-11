@@ -132,13 +132,13 @@ export default function AIBrainStatus({ isDark = true, slideOut = false }) {
   if (slideOut) {
     return (
       <div 
-        className="relative"
+        className="absolute right-0 top-0 h-full"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
         <div 
-          className={`absolute right-0 top-0 transition-transform duration-300 ease-in-out ${
-            isHovered ? 'translate-x-0' : 'translate-x-full'
+          className={`absolute right-0 top-0 h-full transition-all duration-300 ease-in-out ${
+            isHovered ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full pointer-events-none'
           }`}
         >
           {cardContent}
