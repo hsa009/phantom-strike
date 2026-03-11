@@ -13,6 +13,10 @@ import {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+console.log('[PriceChart] URL:', supabaseUrl);
+console.log('[PriceChart] Key set:', !!supabaseKey);
+
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function PriceChart() {
@@ -22,20 +26,26 @@ export default function PriceChart() {
 
   useEffect(() => {
     const fetchPrices = async () => {
+      console.log('[PriceChart] Fetching prices...');
+      
       const { data, error } = await supabase
         .from('price_history')
         .select('close, created_at')
         .order('created_at', { ascending: true })
         .limit(50);
 
+      console.log('[PriceChart] Data:', data?.length, 'Error:', error);
+
       if (error) {
-        console.error('Error fetching prices:', error);
+        console.error('[PriceChart] Error:', error);
         setLoading(false);
         return;
       }
 
       if (data && data.length > 0) {
-        setCurrentPrice(parseFloat(data[data.length - 1].close).toFixed(2));
+        const latestPrice = data[data.length - 1].close;
+        console.log('[PriceChart] Latest price:', latestPrice);
+        setCurrentPrice(parseFloat(latestPrice).toFixed(2));
         
         const formattedData = data.map((row) => ({
           time: new Date(row.created_at).toLocaleTimeString([], { 
@@ -45,6 +55,7 @@ export default function PriceChart() {
           price: parseFloat(row.close)
         }));
 
+        console.log('[PriceChart] Formatted data:', formattedData.length);
         setPriceData(formattedData);
       }
       setLoading(false);
@@ -55,6 +66,23 @@ export default function PriceChart() {
     return () => clearInterval(interval);
   }, []);
 
+  if (loading) {
+    return (
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="text-4xl text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (priceData.length === 0) {
+    return (
+      <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
+        <div className="text-4xl text-white">${currentPrice}</div>
+        <div className="text-gray-500">No chart data available</div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
       <div className="mb-4">
@@ -63,55 +91,49 @@ export default function PriceChart() {
       </div>
 
       <div className="h-80 w-full">
-        {loading ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            Loading...
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={priceData}>
-              <defs>
-                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6}/>
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                </linearGradient>
-              </defs>
-              
-              <XAxis 
-                dataKey="time" 
-                stroke="#6b7280" 
-                fontSize={12} 
-                tickLine={false}
-                axisLine={false}
-                minTickGap={30}
-              />
-              
-              <YAxis 
-                domain={['auto', 'auto']} 
-                stroke="#6b7280" 
-                fontSize={12} 
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => value.toFixed(2)}
-                width={50}
-              />
-              
-              <Tooltip 
-                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem', color: '#fff' }}
-                itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
-              />
-              
-              <Area 
-                type="monotone" 
-                dataKey="price" 
-                stroke="#3b82f6" 
-                strokeWidth={2}
-                fillOpacity={1} 
-                fill="url(#colorPrice)" 
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={priceData}>
+            <defs>
+              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.6}/>
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            
+            <XAxis 
+              dataKey="time" 
+              stroke="#6b7280" 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={false}
+              minTickGap={30}
+            />
+            
+            <YAxis 
+              domain={['auto', 'auto']} 
+              stroke="#6b7280" 
+              fontSize={12} 
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => value.toFixed(2)}
+              width={50}
+            />
+            
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151', borderRadius: '0.5rem', color: '#fff' }}
+              itemStyle={{ color: '#3b82f6', fontWeight: 'bold' }}
+            />
+            
+            <Area 
+              type="monotone" 
+              dataKey="price" 
+              stroke="#3b82f6" 
+              strokeWidth={2}
+              fillOpacity={1} 
+              fill="url(#colorPrice)" 
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
