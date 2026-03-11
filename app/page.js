@@ -158,10 +158,10 @@ export default function DashboardV5() {
             ) : (
               <div className="text-center py-12 font-bold uppercase text-gray-400">NO POSITION</div>
             )}
-            
-            <AIBrainStatus isDark={isDark} />
           </div>
         </div>
+
+        <AIBrainStatus isDark={isDark} />
 
         <div className={`${borderClass} ${cardBg} p-4`}>
           <div className={`border-b-4 ${borderColor} pb-2 mb-4`}>
