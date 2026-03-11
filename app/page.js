@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { fetchPriceHistory, fetchTradeLogs, fetchBotConfig, fetchPortfolioStats, toggleDemoMode, supabase } from '@/lib/supabase'
+import { fetchPriceHistory, fetchTradeLogs, fetchBotConfig, fetchPortfolioStats, toggleDemoMode } from '@/lib/supabase'
 import Header from '@/components/Header'
 import PriceChart from '@/components/PriceChart'
 import TradeFeed from '@/components/TradeFeed'
@@ -44,6 +44,8 @@ export default function Dashboard() {
     setIsLiveMode(newMode)
   }
 
+  const currentPrice = prices.length > 0 ? prices[prices.length - 1].close : null;
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-50">
       <Header isLiveMode={isLiveMode} onToggle={handleToggle} />
@@ -66,10 +68,10 @@ export default function Dashboard() {
           </div>
         </div>
 
-        
+        <PriceChart prices={prices} currentPrice={currentPrice} />
         
         <div className="mt-6">
-          <TradeFeed trades={trades} currentPrice={prices.length > 0 ? prices[prices.length - 1].close : null} />
+          <TradeFeed trades={trades} currentPrice={currentPrice} />
         </div>
       </main>
     </div>
