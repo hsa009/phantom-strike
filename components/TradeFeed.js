@@ -2,7 +2,6 @@
 
 import { ArrowUp, ArrowDown } from 'lucide-react'
 
-// Calculate floating PnL for open trades
 function calculateFloatingPnL(entryPrice, currentPrice, action, margin = 20, leverage = 4) {
     if (!entryPrice || !currentPrice) return null;
 
@@ -38,14 +37,13 @@ export default function TradeFeed({ trades, currentPrice, onCloseTrade }) {
     return 'bg-gray-500/20 text-gray-400'
   }
 
-  // Get the open trade
   const openTrade = trades.find(t => t.status === 'OPEN' || t.status === 'open');
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-lg p-4">
       <h3 className="text-sm font-medium text-gray-400 mb-4">Trade Log</h3>
       
-      {/* Open Trade Card with Live PnL */}
+      {}
       {openTrade && currentPrice && (
         <div className="mb-4 p-4 bg-gray-800 rounded-lg border border-gray-700">
           <div className="flex items-center justify-between mb-2">
